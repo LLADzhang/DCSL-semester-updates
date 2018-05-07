@@ -1,0 +1,15 @@
+[
+  {"task": "cs+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+100"},
+  {"task": "ece+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+100"},
+  {"task": "corec+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+100"},
+  {"task": "pmu+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+100"},
+  {"task": "cs+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+200"},
+  {"task": "ece+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+200"},
+  {"task": "corec+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+200"},
+  {"task": "pmu+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+200"},
+  {"task": "cs+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+300"},
+  {"task": "ece+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+300"},
+  {"task": "corec+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+300"},
+  {"task": "pmu+2018/02/12+14:00+15:00+10+6+magnetic/pressure+2+300"}
+  
+]

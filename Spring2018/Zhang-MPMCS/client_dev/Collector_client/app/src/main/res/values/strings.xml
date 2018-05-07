@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Collector</string>
+    <string name="yourName">Your Name</string>
+    <string name="email">Your Email</string>
+    <string name="register">Register</string>
+    <string name="message">This is the Android application for the mobile crowdsensing user study. It will collect location data in the background. Please enter your name and email and press the register button. There is nothing else you need to do.\n\nIf you have any questions, feel free to contact us:\n\nMichael Roth &lt;roth28\@purdue.edu&gt;\nHeng Zhang &lt;zhan2614\@purdue.edu&gt;\n\n</string>
+</resources>
