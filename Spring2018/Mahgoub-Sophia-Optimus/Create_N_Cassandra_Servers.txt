@@ -1,0 +1,25 @@
+#!/bin/bash
+
+request_arr=()
+rm server_ips_pub
+rm server_ips_prv
+
+for ((i=0;i<$1;i++));
+do
+     #  Feel free to change the image-id or the instance-type as you wish
+	 aws ec2 run-instances --image-id "ami-0e29248892b08c9d9" --count 1 --instance-type c5.large --security-groups "default" > cassandra_log 2> cassandra_log.err
+
+     line=$(more cassandra_log | grep InstanceId)
+     InstanceId=$(java ParseValue "$line")
+
+     echo instance_id: $InstanceId
+     aws ec2 create-tags --resources $InstanceId --tags Key=Name,Value=Server_$i
+
+     line=$(aws ec2 describe-instances --instance-ids $InstanceId | grep "PublicIp" | grep -v "\[" | sed -n '1p')
+     CassandraPublicIp=$(java ParseValue "$line")
+     echo $CassandraPublicIp >> server_ips_pub
+
+     line=$(aws ec2 describe-instances --instance-ids $InstanceId | grep "PrivateIp" | grep -v "\[" | sed -n '1p')
+     CassandraPrivateIp=$(java ParseValue "$line")
+     echo  $CassandraPrivateIp >> server_ips_prv
+done

@@ -1,0 +1,9 @@
+This file has the descibtion of the code base for SOPHIA and OptimusCloud:
+
+Shared-AMIs.txt: describes the shared AMIs and their contents
+Create_N_Cassandra_Servers.txt: a script that uses AWS client to create N Cassandra nodes
+Configure_Cassandra_Nodes_Into_Cluster.txt: a script that configures the N Cassandra nodes and cimbine them into a cluster
+ATC_Exp.tar.gz: Set of optimized configurations used by "Configure_Cassandra_Nodes_Into_Cluster.txt"
+reconfig_instance_type.tar.gz: scripts to change the instance type if Cassandra/Redis inctance on the fly
+
+

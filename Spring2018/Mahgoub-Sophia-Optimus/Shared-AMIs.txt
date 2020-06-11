@@ -1,0 +1,15 @@
+Shared AMIs:
+
+Cassandra:
+
+NSDI_Shooter_SOHPIA_BUS: YCSB Shooter with BUS-tracking traces
+SOSP_Shooter_HPC_SOPHIA: YCSB shooter with HPC simulated traces
+SOSP_MGRAST_Scale_Out_Shooter: YCSB shooter with MGRast traces
+Server_Cassandra_NSDI_ENA: Cassandra image (May not be the latest version) 
+Scylla_DB_Multi_Servers: SycllaDB image (May not be the latest version)
+-----------------------------
+
+Redis:
+
+Server_Redis_N_12: Redis server version 5
+Shooter_Redis_N_12: YCSB shooter for Redis

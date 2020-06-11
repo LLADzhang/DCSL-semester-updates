@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# start shooter
+
+getArray() {
+    array=() # Create array
+    while IFS= read -r line # Read a line
+    do
+        array+=("$line") # Append line to the array
+        ssh-keygen -f "/root/.ssh/known_hosts" -R $line
+    done < "$1"
+}
+getArray "server_ips_pub"
+#for e in "${array[@]}"
+#do
+#    echo "$e"
+#done
+#exit
+getArrayLocal() {
+    arrayLocal=() # Create array
+    while IFS= read -r line # Read a line
+    do
+        arrayLocal+=("$line") # Append line to the array
+    done < "$1"
+}
+getArrayLocal "server_ips_prv"
+
+getArrayTokens() {
+    arrayTokens=() # Create array
+    while IFS= read -r line # Read a line
+    do
+            arrayTokens+=("$line") # Append line to the array
+    done < "$1"
+}
+getArrayTokens "server_tokens_$1"
+
+count_seeds=0
+seeds=""
+while IFS= read -r line; do
+    echo "Reading $line";
+    if [ -z  $seeds ]
+    then
+        seeds=$line
+    else
+        seeds=$seeds,$line
+    fi
+    #((count_seeds++))
+    #if [ $count_seeds -ge 4 ]
+    #then
+            #break
+    #fi
+    #seeds=$seeds,$line
+done < server_ips_prv
+
+echo "Configuring with seeds list: $seeds"
+
+#while IFS= read -r line; do
+
+for line in "${array[@]}"
+do
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo sh /dev/shm/dev_shm/terminate_Current_Cassandra_Instance"
+done
+
+count=0
+for line in "${array[@]}"
+do
+
+
+    #ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo sh /dev/shm/dev_shm/start_1_Cassandra_Node_Unlimited_Fast 1"
+    #continue
+
+    echo "Configureing $line";
+    sleep 5
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo chmod -R 777 /home/optimized_configs/"
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo chmod -R 777 /dev/shm/dev_shm/"
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/restart_1_Cassandra_Node_Unlimited_Fast ubuntu@$line:/dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast
+
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_D.yaml ubuntu@$line:/home/optimized_configs/Cass_1.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_D.yaml ubuntu@$line:/home/optimized_configs/Cass_D.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_0.yaml ubuntu@$line:/home/optimized_configs/Cass_2.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_1.yaml ubuntu@$line:/home/optimized_configs/Cass_3.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_2.yaml ubuntu@$line:/home/optimized_configs/Cass_4.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_3.yaml ubuntu@$line:/home/optimized_configs/Cass_5.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_4.yaml ubuntu@$line:/home/optimized_configs/Cass_6.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_5.yaml ubuntu@$line:/home/optimized_configs/Cass_7.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_6.yaml ubuntu@$line:/home/optimized_configs/Cass_8.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_7.yaml ubuntu@$line:/home/optimized_configs/Cass_9.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_8.yaml ubuntu@$line:/home/optimized_configs/Cass_10.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_9.yaml ubuntu@$line:/home/optimized_configs/Cass_11.yaml
+    scp -i "Aws_Key_2.pem" ATC_Exp/optimized_configs/Cass_100.yaml ubuntu@$line:/home/optimized_configs/Cass_12.yaml
+
+
+    scp -i "Aws_Key_2.pem" fix_optimized_configs_ips_token.java ubuntu@$line:~
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo javac fix_optimized_configs_ips_token.java"
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo mkdir /home/opt_fixed"
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo mv /home/optimized_configs/* /home/opt_fixed"
+
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo java fix_optimized_configs_ips_token /home/opt_fixed /home/optimized_configs $seeds ${arrayLocal[$count]} ${arrayTokens[$count]}"
+    echo "token ${arrayTokens[$count]}"
+    ((count++))
+
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo cp /home/ubuntu/dev_shm.tar.gz /dev/shm/"
+
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "cd /dev/shm/; sudo tar -xzf dev_shm.tar.gz;"
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo sh /dev/shm/dev_shm/terminate_Current_Cassandra_Instance"
+
+    scp -i "Aws_Key_2.pem" start_1_Cassandra_Node_Unlimited_Fast ubuntu@$line:/home/optimized_configs/start_1_Cassandra_Node_Unlimited_Fast
+
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo mv /home/optimized_configs/start_1_Cassandra_Node_Unlimited_Fast /home/ubuntu"
+    $seeds"
+    ssh -oStrictHostKeyChecking=no -i "Aws_Key_2.pem" ubuntu@$line "sudo sh /home/ubuntu/start_1_Cassandra_Node_Unlimited_Fast D"
+
+done
