@@ -1,0 +1,111 @@
+#!/bin/bash
+
+dir=Middle_Cass_Rafiki_4_servers_D_vs_Dyn_vs_Plain_15min
+
+rm -r $dir
+mkdir $dir
+host=$1
+host2=$2
+host3=$3
+host4=$4
+
+HostID=host
+HostID2=host2
+
+export HostID
+export HostID2
+
+for method in 1 D #{0..53} # 1 42 47 51 57 68 75 79 85 #{0..94} #10 #10 20 30 40 50 60 70 80 90 100
+do
+		conf=100
+		compactions=1
+		if [ $method = D ]; then
+			conf=D
+			compactions=0
+		fi
+
+		pollid=$(ps ax | grep poll  | grep -v "grep" | awk '{print $1}')		
+		kill $pollid	
+		
+		if [ $method = 0 ]; then
+			nohup ./poll_for_switching $host $host2 $host3 $host4 $method >polling_info 2>polling_error &		
+		fi
+		if [ $method = 1 ]; then
+                        nohup ./poll_for_switching $host $host2 $host3 $host4 $method >polling_info 2>polling_error &
+                fi	
+                threads=500
+                for rep in 0   #0 1 2 #{0..5}
+                do
+                        for wrkld_id in 0
+                        do
+				ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host "sudo sh /dev/shm/dev_shm/terminate_Current_Cassandra_Instance"
+                                ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host2 "sudo sh /dev/shm/dev_shm/terminate_Current_Cassandra_Instance"
+                                ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host3 "sudo sh /dev/shm/dev_shm/terminate_Current_Cassandra_Instance"
+                                ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host4 "sudo sh /dev/shm/dev_shm/terminate_Current_Cassandra_Instance"
+
+                                sleep 5
+                                ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host "sudo sh /dev/shm/dev_shm/start_1_Cassandra_Node_Unlimited_Fast $conf LV"
+                                ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host2 "sudo sh /dev/shm/dev_shm/start_1_Cassandra_Node_Unlimited_Fast $conf LV"
+                                ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host3 "sudo sh /dev/shm/dev_shm/start_1_Cassandra_Node_Unlimited_Fast $conf LV"
+                                ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host4 "sudo sh /dev/shm/dev_shm/start_1_Cassandra_Node_Unlimited_Fast $conf LV"
+                                RR=$(echo "scale=4; $wrkld_id*10" | bc)
+                                echo "applying workload $RR"
+                                #wrkld_id=$conf
+                                #ssh -i "Exp1_Key.pem" ubuntu@$host "sudo sh /home/ubuntu/start_1_Cassandra_Node_Unlimited $conf"
+                                export CQLSH_NO_BUNDLED=true
+                                #sleep 30
+                                status=$(ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$host "/home/ubuntu/apache-cassandra-3.11.0/bin/nodetool status" | grep rack1 | awk '{print $1}')
+                                if [[ $status = *"UN"* ]]; then
+                                echo Successfully started;
+
+                                        apache-cassandra-3.11.0/bin/cqlsh $host -e "CREATE KEYSPACE IF NOT EXISTS mgrast_abundance WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3};"
+                                        comp="WITH  compaction = { 'class' :  'SizeTieredCompactionStrategy' }"
+                                        cache=''
+                                        if [ $compactions = 1 ]; then
+                                                comp="WITH  compaction = { 'class' :  'LeveledCompactionStrategy' }"
+                                        fi
+					apache-cassandra-3.11.0/bin/cqlsh $host -e "CREATE TABLE IF NOT EXISTS mgrast_abundance.job_md5s (version int,job int,md5 text,abundance int,exp_avg float,ident_avg float,len_avg float,seek bigint,length int,PRIMARY KEY ((version, job), md5)) $comp $cache;"
+                                        for file in /home/ubuntu/MgDataBackup/*; do
+                                           echo "$file"
+                                           apache-cassandra-3.11.0/bin/cqlsh $host -e "copy mgrast_abundance.job_md5s (version,job,md5,abundance,exp_avg,ident_avg,len_avg,seek,length) from '$file'"
+                                           sleep 30
+                                        done
+                                        sleep 10
+                                        echo "schema created"
+                                        #break
+                                        wrkld=workloada_$RR
+                                        subdir=exp"_"$conf"_"$wrkld"_"$server_size"_"$threads"_"$compactions"_"$method
+                                        mkdir $dir/$subdir
+                                        iostat -x 1 200 > $dir/$subdir/"_Cli_IO" &
+                                        client_IO_pid=$!
+                                        ssh -i "Exp1_Key.pem" ubuntu@$host 'iostat -x 1 200' >>  $dir/$subdir/"_Server_IO_1" &
+                                        server_IO_pid=$!
+
+                                        ssh -i "Exp1_Key.pem" ubuntu@$host2 'iostat -x 1 200' >>  $dir/$subdir/"_Server_IO_2" &
+                                        server_IO_pid2=$!
+                                #ssh root@$host 'mpstat -P ALL 1 200' >  $dir/$subdir/"_Server_Cores_IO" &
+                                #ssh root@$host './docker_stats_report_cass' > $dir/$subdir/"_Docker_stats" &
+                                #ssh root@$host 'perf stat -e L1-dcache-loads,L1-dcache-load-misses -a sleep 360' > $dir/$subdir/"_Cache_Stats" 2> $dir/$subdir/"Perf_Cache_Stats" &
+                                        numRecords=200000000
+                                        maxTime=1000
+					echo "start-monitor ***********************" >> $dir/$subdir/"_Server_IO_1"
+                                        echo "start-monitor ***********************" >> $dir/$subdir/"_Server_IO_2"
+                                        echo "start-monitor ***********************" >> $dir/$subdir/"_Cli_IO"
+
+
+
+                                        sh YCSB-master/run1 $numRecords $RR $maxTime  $host $threads > $dir/$subdir/"Run_1"  2> $dir/$subdir/"Run_Sample_1"&
+                                        sh YCSB-master_1/run1 $numRecords $RR $maxTime  $host2 $threads > $dir/$subdir/"Run_2"  2> $dir/$subdir/"Run_Sample_2"&
+                                        #sh YCSB-master_1/run1 $numRecords $RR $maxTime $host $threads > $dir/$subdir/"Run_2" 2> $dir/$subdir/"Run_Sample_2"&
+                                        #sh YCSB-master_2/run1 $numRecords $wrkld $maxTime $host $threads > $dir/$subdir/"Run_3" 2> $dir/$subdir/"Run_Sample_3"&
+                                        wait
+
+                                        echo "end-monitor ***********************" >> $dir/$subdir/"_Server_IO_1"
+                                        echo "end-monitor ***********************" >> $dir/$subdir/"_Server_IO_2"
+                                        echo "end-monitor ***********************" >> $dir/$subdir/"_Cli_IO"
+
+                                fi
+                done
+        done
+done
+ 

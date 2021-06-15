@@ -1,0 +1,1 @@
+This directory contains the source code for 2018 SenSys MPMCS submission. Michael A Roth (roth28@purdue.edu) is the collaborator in the implementation of mpmcs server mobility prediction model. Please refer to each folder for details about each client and server.

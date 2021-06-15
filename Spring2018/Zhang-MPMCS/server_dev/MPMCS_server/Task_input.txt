@@ -1,0 +1,17 @@
+#location+date+startTime+endTime+period+tolerance+sensors+num_devices+radius
+#locations include: corec, pmu, ece, cs, elliot, beering, earhart, shealy, chauncey
+cs+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+pmu+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+ece+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+elliot+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+beering+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+earhart+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+shealy+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+chauncey+2018/02/25+13:30+14:30+15+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+cs+2018/02/25+14:30+16:30+30+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+pmu+2018/02/25+14:30+16:30+30+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+ece+2018/02/25+14:30+16:30+30+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+elliot+2018/02/25+14:30+16:30+30+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+beering+2018/02/25+14:30+16:30+30+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+earhart+2018/02/25+14:30+16:30+30+10+magnetic/gravity/humidity/temperature/light/pressure+10+100
+shealy+2018/02/25+14:30+16:30+30+10+magnetic/gravity/humidity/temperature/light/pressure+10+100

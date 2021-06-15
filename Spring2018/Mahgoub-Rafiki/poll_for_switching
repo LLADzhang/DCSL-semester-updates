@@ -1,0 +1,101 @@
+#!/bin/bash
+
+#sudo docker run -it --rm --net container:cass1_limited cassandra nodetool status
+HostID=$1
+HostID2=$2
+HostID3=$3
+HostID4=$4
+Method=$5
+
+WL_0_Conf_0=73846
+WL_1_Conf_0=65954
+WL_0_Conf_1=71319
+WL_1_Conf_1=95666
+T_Switch=30
+N=4
+RF=3
+CL=1
+Theta=0
+var=0
+
+period_arr=(180 180 180 420)
+per_index=0
+current_conf=1
+
+while true; do
+	var=$((var+1))
+	FILE='/home/ubuntu/config_switch/0.0.txt'
+	if [ -f $FILE ] && [ $current_conf != 0 ]; then
+	   #sleep 2	
+	   #period=$(sudo more $FILE)	
+	   period=${period_arr[$per_index]} #$(java getValue $FILE)
+	   per_index=$((per_index+1))
+
+	   echo "File $FILE exists. with period $period"
+	   #more $FILE
+	   Decision=1
+	   if [ $Method = 1 ]; then
+		   Decision=$(cd parser/; java -cp commons-io-2.5.jar:. Get_Optimal_K $N $RF $CL $WL_0_Conf_1 $WL_0_Conf_0 $T_Switch 0 $period)	
+	   fi
+
+	   echo "WL: 0, Period: $period, Decision: $Decision"
+	   sudo rm $FILE
+	   if [ $Decision = 1 ]; then
+		   current_conf=0
+		   apache-cassandra-3.11.0/bin/cqlsh $HostID3 -e "ALTER TABLE mgrast_abundance.job_md5s WITH compaction = { 'class' : 'SizeTieredCompactionStrategy' }"
+           
+		   ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 111 $HostID"
+		   echo "restarted first server"	
+		   sleep 5
+		   echo "restarted second server"
+		   ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID2 "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 111 $HostID2"
+		   echo "restarted third server"
+		   sleep 5
+		   ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID3 "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 111 $HostID3"
+		   echo "restarted fourth server"
+		   sleep 5
+		   ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID4 "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 111 $HostID4"		
+	   fi		
+	else
+	   echo "File $FILE does not exist. $var"
+	fi
+
+	FILE2='/home/ubuntu/config_switch/1.0.txt'
+	if [ -f $FILE2 ] && [ $current_conf != 1 ]; then
+	   #sleep 2
+	   #period=$(sudo more $FILE2)
+	   #period=$(java getValue $FILE2)
+	   period=${period_arr[$per_index]} #$(java getValue $FILE)
+           per_index=$((per_index+1))
+
+	   echo "File $FILE2 exists. with period $period"
+	   #more $FILE
+	   Decision=1
+	   if [ $Method = 1 ]; then
+		   Decision=$(cd parser/; java -cp commons-io-2.5.jar:. Get_Optimal_K $N $RF $CL $WL_1_Conf_0 $WL_1_Conf_1 $T_Switch 0 $period)
+	   fi
+	   echo "WL: 1, Period: $period, Decision: $Decision"
+	   sudo rm -r $FILE2
+	
+	   if [ $Decision = 1 ]; then
+		   current_conf=1
+	           apache-cassandra-3.11.0/bin/cqlsh $HostID3 -e "ALTER TABLE mgrast_abundance.job_md5s WITH  compaction = { 'class' : 'LeveledCompactionStrategy' }"
+		   ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 100 $HostID"
+		   echo "restarted first server"
+		   sleep 5
+		   echo "restarted second server"
+		   ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID2 "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 100 $HostID2"
+	           echo "restarted third server"
+		   sleep 5
+		   ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID3 "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 100 $HostID3"
+		   echo "restarted fourth server"
+        	   sleep 5
+	           ssh -oStrictHostKeyChecking=no  -i "Exp1_Key.pem" ubuntu@$HostID4 "sudo sh /dev/shm/dev_shm/restart_1_Cassandra_Node_Unlimited_Fast 100 $HostID4"
+	    fi
+
+	else
+	  echo "File $FILE2 does not exist. $var"
+	fi
+	sleep 3
+done
+
